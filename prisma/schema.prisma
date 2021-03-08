@@ -1,0 +1,114 @@
+datasource db {
+   provider = "mysql"
+   url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+
+enum MediaType {
+  IMG
+  VID
+}
+
+
+
+model User {
+  id                      Int           @id @default(autoincrement())
+  email                   String?       @unique
+  password                String
+  name                    String?
+  username                String        @unique
+  phoneNumber             String?       @unique
+  profile                 Profile?
+  followedBy              User[]         @relation("UserFollowers",references:[id])
+  followings              User[]         @relation("UserFollowers",references:[id])
+  role                    UserRole      @default(USER)
+  isActive                Boolean       @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  taggedInPosts   Post[]      @relation("TagUserPost")
+
+  posts           Post[]
+
+  comments         Comment[]
+
+  likes             Like[]
+ 
+
+  @@index([username,email,name])
+}
+
+
+model Profile {
+  id                      Int           @id @default(autoincrement())
+  bio                     String?
+  social                  Json?
+  userId                  Int            @unique
+  user                    User           @relation(fields:[userId],references:[id])
+}
+
+
+
+model Post {
+  id                      Int           @id @default(autoincrement())
+  body                    String?
+  media                   PostMedia?
+  taggedToUsers           User[]        @relation("TagUserPost")     
+  comments                Comment[]
+  likes                   Like[]
+  userId                  Int    
+  user                    User          @relation(fields:[userId],references:[id]) 
+
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([userId])
+  
+        
+}
+
+model   PostMedia {
+   id                      Int           @id @default(autoincrement())
+   mimeType         String
+   size             String
+   url              String
+   type             MediaType
+   postId       Int
+   post         Post        @relation(fields:[postId],references:[id])
+   
+}
+
+
+model Comment {
+   id                      Int           @id @default(autoincrement())
+   body                String  
+   postId       Int       
+   post         Post        @relation(fields:[postId],references:[id])
+   userId       Int
+   user         User        @relation(fields:[userId],references:[id])
+   createdAt    DateTime    @default(now())
+   updatedAt    DateTime     @updatedAt
+
+}
+
+
+model Like {
+   id                      Int           @id @default(autoincrement())
+   postId       Int       
+   post         Post        @relation(fields:[postId],references:[id])
+   userId       Int
+   user         User        @relation(fields:[userId],references:[id])
+   createdAt    DateTime    @default(now())
+   updatedAt    DateTime     @updatedAt
+}
+
+
